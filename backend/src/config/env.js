@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 export const ENV = {
-  PORT: process.env.PORT || 5001,
+  PORT: process.env.PORT,
   MONGO_URL: process.env.MONGO_URL || "JUSTA URL",
   NODE_ENV: process.env.NODE_ENV || "development",
   CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY || "JUSTAKEY",
