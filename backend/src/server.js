@@ -1,10 +1,9 @@
 import express from "express";
 import { ENV } from "./config/env.js";
 import { connectDB } from "./config/db.js";
-import { ClerkExpressWithAuth, clerkMiddleware } from "@clerk/express";
+import { clerkMiddleware } from "@clerk/express";
 import { serve } from "inngest/express";
-import { inngest } from "./inngest/client.js"; // You need to have this
-import { functions } from "./inngest/functions.js"; // You need to have this
+import { functions, inngest } from "./config/inngest.js";
 
 const app = express();
 
