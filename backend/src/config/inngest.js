@@ -1,52 +1,54 @@
-import {Inngest} from "inngest";
-import {connectDB} from "./db.js";
-import {User} from "../models/user.model.js"
-import {ENV} from "./env.js";
-import { deleteStreamUser, upsertStreamUser } from "./stream.js";
+import { Inngest } from "inngest";
+import { connectDB } from "./db.js";
+import { User } from "../models/user.model.js"; // Import the User model
+import {
+  addUserToPublicChannels,
+  deleteStreamUser,
+  upsertStreamUser,
+} from "./stream.js";
 
-
-export const inngest = new Inngest({id: "slack-project"});
-console.log("Signing Key:", process.env.INGEST_SIGNING_KEY);
-
-console.log("ENV.NODE_ENV:", ENV.NODE_ENV);
-console.log("INGEST_SIGNING_KEY length:", ENV.INGEST_SIGNING_KEY?.length);
-
+// Create a client to send and receive events
+export const inngest = new Inngest({ id: "slack-clone" });
 
 const syncUser = inngest.createFunction(
-    {id: "sync-user"},
-    {event:"clerk/user.created"},
-    async ({event})=>{
-        await connectDB();
+  { id: "sync-user" },
+  { event: "clerk/user.created" },
+  async ({ event }) => {
+    await connectDB();
 
-        const {id,email_addresses,first_name,last_name,image_url} = event.data;
+    const { id, email_addresses, first_name, last_name, image_url } =
+      event.data;
 
-        const newUser = {
-            clerkId :id,
-            email: email_addresses[0]?.email_address || "",
-            name: `${first_name || ""} ${last_name || ""}`,
-            image: image_url,
-        }
-        await User.create(newUser);
+    const newUser = {
+      clerkId: id,
+      email: email_addresses[0]?.email_address,
+      name: `${first_name || ""} ${last_name || ""}`,
+      image: image_url,
+    };
 
-        await upsertStreamUser({
-            id: newUser.clerkId.toString(),
-            name: newUser.name,
-            image: newUser.image,
-        })
-    }
+    await User.create(newUser);
+    console.log("Inngest user data:", newUser);
+    await upsertStreamUser({
+      id: newUser.clerkId.toString(),
+      name: newUser.name,
+      image: newUser.image,
+    });
+    console.log("Stream user upserted successfully:", newUser.name);
+    await addUserToPublicChannels(newUser.clerkId.toString());
+  }
 );
 
 const deleteUserFromDB = inngest.createFunction(
-    {id: "delete-user-frm-db"},
-    {event:"clerk/user.deleted"},
-    async({event})=>{
-        const {id} = event.data;
-        await User.deleteOne({clerkId:id});
+  { id: "delete-user-from-db" },
+  { event: "clerk/user.deleted" },
+  async ({ event }) => {
+    await connectDB();
+    const { id } = event.data;
+    await User.deleteOne({ clerkId: id });
 
-        await deleteStreamUser(id.toString());
-    }
-)
+    await deleteStreamUser(id.toString());
+  }
+);
 
-
-
+// Create an empty array where we'll export future Inngest functions
 export const functions = [syncUser, deleteUserFromDB];
