@@ -8,7 +8,7 @@ const AuthPage = () => {
         <div className="auth-hero">
           <div className="brand-container">
             <img src="/logo.png" alt="Slap" className="brand-logo" />
-            <span className="brand-name">Slap</span>
+            <span className="brand-name">CLink</span>
           </div>
 
           <h1 className="hero-title">Where Work Happens ✨</h1>
@@ -38,7 +38,7 @@ const AuthPage = () => {
 
           <SignInButton mode="modal">
             <button className="cta-button">
-              Get Started with Slap
+              Get Started with CLink
               <span className="button-arrow">→</span>
             </button>
           </SignInButton>
